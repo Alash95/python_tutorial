@@ -1,6 +1,3 @@
-"""Dice rolling
-while loop
-"""
 #Ask: roll the dice?
 #if user enters y
 #   Generate two random numbers
@@ -14,7 +11,7 @@ while loop
 from random import randint
 
 count = 0
-dice_roll = int(input(f"How many dice do you want to roll 🔢? "))
+dice_roll = int(input(f"How many times do you want to roll the dice 🔢? "))
 while True:
     prompt = input(f"Roll the dice? (y/n) 🎲: ").lower()
 

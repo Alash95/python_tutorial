@@ -8,12 +8,38 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
+
 def get_credentials():
+    """Retrieve email and password credentials from environment variables.
+
+    Returns:
+        tuple: A tuple containing the email (str) and password (str) for the sender account.
+
+    Note:
+        Ensure that the .env file is present and contains the 'email' and 'password' variables.
+    """
+
     email = os.environ.get("email")
     password = os.environ.get("password")
     return email, password
 
+
 def compose_email(subject, body, sender, receivers):
+    """Compose a multipart email message with specified content and headers.
+
+    Args:
+        subject (str): The subject line of the email.
+        body (str): The plain text content/body of the email.
+        sender (str): The sender's email address.
+        receivers (list): List of recipient email addresses.
+
+    Returns:
+        MIMEMultipart: A configured email message object with headers and body attached.
+
+    Note:
+        The 'To' header is automatically joined from the receivers list using commas.
+    """
+
     message = MIMEMultipart()
     message["From"] = sender
     message["To"] = ", ".join(receivers)
@@ -22,54 +48,44 @@ def compose_email(subject, body, sender, receivers):
     message.attach(MIMEText(body, "plain"))
     return message
 
+
 def connect_smtp_server(server, port):
+    """Establish a secure SMTP connection to the specified server and port.
+
+    Args:
+        server (str): The SMTP server address (e.g., "smtp.gmail.com").
+        port (int): The port number for the SMTP server (e.g., 465 for Gmail SSL).
+
+    Returns:
+        smtplib.SMTP: An authenticated SMTP connection object.
+
+    Note:
+        This function uses SMTP_SSL for secure connections. Ensure the port matches
+        the server's SSL requirements (typically 465 for Gmail).
+    """
+
     smtp_connection = smtplib.SMTP_SSL(server, port)
-    # smtp_connection.starttls()
     return smtp_connection
 
-def send_email(smtp_connection, receiver, message, sender, password):
-    try:
-        smtp_connection.login(sender, password)
-        smtp_connection.sendmail(
-            sender, receiver,  message.as_string()
-        )
-        print("✅ Email sent successfully!")
-    except Exception as e:
-        print(f"❌ Failed to send email: {e}")
 
-def close_connection(smtp_connection):
-    smtp_connection.quit()
+def send_email(server, port, receivers, message, sender, password):
+    """Send an email through an established SMTP connection.
 
-def main():
-    # Load credentials function
-    email, password = get_credentials()
+    Args:
+        smtp_connection (smtplib.SMTP): An authenticated SMTP connection object.
+        receiver (list): List of recipient email addresses.
+        message (MIMEMultipart): Pre-composed email message object with headers and content.
+        sender (str): Sender's email address used for authentication.
+        password (str): Sender's account password for SMTP authentication.
 
-    # compose emails function
-    subject = "Welcome Address from Oyinlola's Email Sender"
-    body = """
-This is to show the depth of my research on using SMTPLIB and MIMEMultiPart 
-and MIMEText.
-
-I used a modular approach by enclosing all my variables in functions and
-secret keys in a dotenv file.
-
-I also faced a struggle in thinking out this whole code but with the help 
-of stack overflow and medium articles, i was able to overcome.
-"""
-
-    sender = email
-    receivers = ["oyinlolaalasho95@gmail.com", "promise.chinonso@jadasquad.com", "joseph.fadero@jadasquad.com", "favour.atane@jadasquad.com"]
-
-    message = compose_email(subject, body, sender, receivers)
-
-    # connect function
-    smtp_connection = connect_smtp_server("smtp.gmail.com", 465)
-
-    # send email function
-    send_email(smtp_connection, receivers, message, email, password)
-
-    # close connection function
-    close_connection(smtp_connection)
-if __name__ == "__main__":
-    main()
-    
+    Uses `with` to ensure the SMTP connection is closed automatically.
+    """
+    with smtplib.SMTP_SSL(server, port) as smtp_connection:
+        try:
+            smtp_connection.login(sender, password)
+            smtp_connection.sendmail(
+                sender, receivers,  message.as_string()
+            )
+            print("✅ Email sent successfully!")
+        except Exception as e:
+            print(f"❌ Failed to send email: {e}")
