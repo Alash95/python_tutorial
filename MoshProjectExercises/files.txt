@@ -1,0 +1,2 @@
+Hi, this is my simple text to my files.txt file.
+save
